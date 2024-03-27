@@ -1,0 +1,8 @@
+prefix=/home/saranya/interbotix_ws/devel
+
+Name: interbotix_tf_tools
+Description: Description of interbotix_tf_tools
+Version: 0.0.0
+Cflags: -I/home/saranya/interbotix_ws/src/interbotix_ros_toolboxes/interbotix_common_toolbox/interbotix_tf_tools/include
+Libs: -L${prefix}/lib -ltf_rebroadcaster
+Requires: geometry_msgs roscpp tf2_geometry_msgs

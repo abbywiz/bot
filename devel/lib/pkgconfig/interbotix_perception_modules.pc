@@ -1,0 +1,8 @@
+prefix=/home/saranya/interbotix_ws/devel
+
+Name: interbotix_perception_modules
+Description: Description of interbotix_perception_modules
+Version: 0.0.0
+Cflags: -I/home/saranya/interbotix_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: interbotix_xs_msgs apriltag_ros cv_bridge message_runtime pcl_conversions pcl_ros roscpp rospy tf2_ros tf2_geometry_msgs

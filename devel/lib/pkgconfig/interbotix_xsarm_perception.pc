@@ -1,0 +1,8 @@
+prefix=/home/saranya/interbotix_ws/devel
+
+Name: interbotix_xsarm_perception
+Description: Description of interbotix_xsarm_perception
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: interbotix_perception_modules interbotix_xsarm_control realsense2_camera
