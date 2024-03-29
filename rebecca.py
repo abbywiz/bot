@@ -6,34 +6,40 @@ from interbotix_xs_modules.arm import InterbotixManipulatorXS
 
 # Accepts real world coordinates for where to put the gripper
 # We think it's in respect to the base frame
-def pickAndPlace(x,y,z):
+def pickAndPlace(x,y,z,pitch):
     # Initialize the arm module along with the pointcloud and armtag modules
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
-    # set initial arm and gripper pose
+    i= 0
+    bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
+    while i<3:
+
+        # set initial arm and gripper pose
+        
+        bot.gripper.open()
+
+        # get the ArmTag pose
+        #bot.arm.set_ee_pose_components(y=-0.3, z=0.2) #home base?
+        #time.sleep(0.5)
+
+        ## TODO: Call set_ee_pose_matrix with T from base link to gripper
+        # Transformation Matrix representing the transform from the /<robot_name>/base_link frame to the /<robot_name>/ee_gripper_link frame
+
+        #Do we need base to gripper matrix here?
+
+        # pick up all the objects and drop them in a virtual basket in front of the robot
+        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=pitch)
+        bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
+        bot.gripper.close()
+
+        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=pitch)
+
+        bot.arm.set_ee_pose_components(x=0.0,y = -0.2 ,z=0.2)
+        bot.gripper.open()
+        
+        i+=1
+
     bot.arm.set_ee_pose_components(x=0.3, z=0.2)
-    bot.gripper.open()
-
-    # get the ArmTag pose
-    bot.arm.set_ee_pose_components(y=-0.3, z=0.2) #home base?
-    time.sleep(0.5)
-
-    ## TODO: Call set_ee_pose_matrix with T from base link to gripper
-    # Transformation Matrix representing the transform from the /<robot_name>/base_link frame to the /<robot_name>/ee_gripper_link frame
-
-    #Do we need base to gripper matrix here?
-
-    # pick up all the objects and drop them in a virtual basket in front of the robot
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=0.5)
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=0.5)
-    bot.gripper.close()
-
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=0.5)
-
-    bot.arm.set_ee_pose_components(x=0.3, z=0.2)
-    bot.gripper.open()
-
-
     bot.arm.go_to_sleep_pose()
 
 def getApril(img):
@@ -110,5 +116,10 @@ def captureVideo():
     cv2.destroyAllWindows() 
 
 
-# captureVideo()
-pickAndPlace(x,y,z)
+# cap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tureVideo()
+#    ''' i = 0
+#     while i<3:
+#         pickAndPlace(0.0,0.2,0.04,0.5)
+#         i += 1'''
+    
+pickAndPlace(0.0,0.2,0.04,0.5)
