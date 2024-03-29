@@ -10,7 +10,7 @@ def pickAndPlace(x,y,z,pitch):
     # Initialize the arm module along with the pointcloud and armtag modules
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
-    i= 0
+    i=2
     bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
     while i<3:
 
@@ -59,24 +59,21 @@ def getApril(img):
     if results.size() > 0:
 
         # print(r.tag_id)
-        if results[0] == 0:
+        if results[0].tag_id == 0:
             # extract the bounding box (x, y)-coordinates for the AprilTag
             # and convert each of the (x, y)-coordinate pairs to integers
             (ptA, ptB, ptC, ptD) = r.corners
-            ptB = (int(ptB[0]), int(ptB[1]))
-            ptC = (int(ptC[0]), int(ptC[1]))
-            ptD = (int(ptD[0]), int(ptD[1]))
-            ptA = (int(ptA[0]), int(ptA[1]))
+
+            centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
+            centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
+
             #points in camera space
 
-            #TODO: Find centroid of these four points
             #Use transformation matrix here
             #TODO: find transform from camera to gripper
-            pickAndPlace(x,y,z)
+            # do we need calibration matrix here
+            pickAndPlace(centerx,centery,0.04,0.5)
 
-
-            # cv2.solvePnP() idk what this is 
-            # cv2.Rodrigues()
 
 
  
@@ -99,7 +96,6 @@ def captureVideo():
             break
 
         getApril(frame)
-        time.sleep(5)
         # Display the resulting frame 
         cv2.imshow('frame', frame)
 
@@ -122,4 +118,6 @@ def captureVideo():
 #         pickAndPlace(0.0,0.2,0.04,0.5)
 #         i += 1'''
     
-pickAndPlace(0.0,0.2,0.04,0.5)
+# pickAndPlace(0.0,0.2,0.04,0.5)
+
+captureVideo()
