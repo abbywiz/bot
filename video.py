@@ -19,11 +19,22 @@ def getApril(img):
         (ptA, ptB, ptC, ptD) = r.corners
         tag = r.tag_id
 
+        ptB = (int(ptB[0]), int(ptB[1]))
+	    ptC = (int(ptC[0]), int(ptC[1]))
+	    ptD = (int(ptD[0]), int(ptD[1]))
+	    ptA = (int(ptA[0]), int(ptA[1]))
+
+        print("ptA: ", str(ptA))
+        print("ptB: ", str(ptB))
+        print("ptC: ", str(ptC))
+        print("ptD: ", str(ptD))
+
+
         centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
         centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
 
         centroid = (centerx, centery)
-        print(str(centerx), "," , str(centery))
+        # print(str(centerx), "," , str(centery))
 
         #TODO: Some conditional based on tag ID
         #send to pick and place
@@ -32,7 +43,7 @@ def getApril(img):
   
 def captureVideo(): 
     # define a video capture object 
-    vid = cv2.VideoCapture(0) 
+    vid = cv2.VideoCapture(2) 
 
     if not vid.isOpened():
         print("Cannot open camera")
