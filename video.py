@@ -20,10 +20,10 @@ def getApril(img):
         tag = r.tag_id
 
         ptB = (int(ptB[0]), int(ptB[1]))
-	    ptC = (int(ptC[0]), int(ptC[1]))
-	    ptD = (int(ptD[0]), int(ptD[1]))
-	    ptA = (int(ptA[0]), int(ptA[1]))
-
+        ptC = (int(ptC[0]), int(ptC[1]))
+        ptD = (int(ptD[0]), int(ptD[1]))
+        ptA = (int(ptA[0]), int(ptA[1]))
+        
         print("ptA: ", str(ptA))
         print("ptB: ", str(ptB))
         print("ptC: ", str(ptC))
