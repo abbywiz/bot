@@ -105,6 +105,14 @@ def click_event(event, x, y, flags, param):
 #     # Destroy all the windows 
 #     cv2.destroyAllWindows() 
 
+
+def pixelToBase(roate, scale, Ox, Oy, x, y):
+    scaledx, scaledy = numpy.array([x * scale, y * scale])
+    rotated = numpy.dot(rotate, numpy.array([scaledx,scaledy]))
+    origin = numpy.array([Ox,Oy])
+    return numpy.subtract(rotated, origin)
+
+
 def pixelToReal(x, y, scale, rotate):
     scaledx, scaledy = numpy.array([x * scale, y * scale])
 
