@@ -2,14 +2,23 @@
 import cv2 
 import apriltag
 import numpy
-import matplotlib.pyplot as plt 
 import math
+import json
 
-global_params = None 
 pixels = []
 clicked = []
 rotate = []
 scale = 0
+
+def saveConfig(origin, scale, rotate):
+    config = {
+    "origin": origin.tolist(),
+    "scale": scale,
+    "rotate": rotate.tolist()
+    }
+    json_object = json.dumps(config, indent=4)
+    with open("config.json", "w") as outfile:
+        outfile.write(json_object)
 
 # function to display the coordinates of 
 # of the points clicked on the image  
@@ -26,101 +35,21 @@ def click_event(event, x, y, flags, param):
         clicked.append([x,y])
 
     if event == cv2.EVENT_RBUTTONDOWN:
+        print("RIGHT: ", x, ' ', y) 
         pixels.append([x,y])
 
 
 
-# def getApril(img):
-
-#     image = img
-#     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-#     options = apriltag.DetectorOptions(families="tag36h11")
-#     detector = apriltag.Detector(options)
-#     results = detector.detect(gray)
-
-
-
-
-#     # loop over the AprilTag detection results
-#     for r in results:
-#         # extract the bounding box (x, y)-coordinates for the AprilTag
-#         # and convert each of the (x, y)-coordinate pairs to a centroid
-#         (ptA, ptB, ptC, ptD) = r.corners
-#         tag = r.tag_id
-
-#         ptB = (int(ptB[0]), int(ptB[1]))
-#         ptC = (int(ptC[0]), int(ptC[1]))
-#         ptD = (int(ptD[0]), int(ptD[1]))
-#         ptA = (int(ptA[0]), int(ptA[1]))
-        
-#         print("ptA: ", str(ptA))
-#         print("ptB: ", str(ptB))
-#         print("ptC: ", str(ptC))
-#         print("ptD: ", str(ptD))
-
-
-#         centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
-#         centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
-
-#         centroid = (centerx, centery)
-#         print(str(centerx), "," , str(centery))
-
-#         #TODO: Some conditional based on tag ID
-#         #send to pick and place
-#         #TODO: convert camera to world space!
-#         # These are point in camera space
-  
-# def captureVideo(): 
-#     # define a video capture object 
-#     vid = cv2.VideoCapture(2) 
-
-#     if not vid.isOpened():
-#         print("Cannot open camera")
-#         exit()
-
-#     while(True): 
-        
-#         # Capture the video frame by frame 
-#         ret, frame = vid.read() 
-
-#         # if frame is read correctly ret is True
-#         if not ret:
-#             print("Can't receive frame (stream end?). Exiting ...")
-#             break
-
-#         getApril(frame)
-#         # Display the resulting frame 
-
-#         cv2.imshow('frame', img)
-        
-#         # the 'q' button is set as the 
-#         # quitting button you may use any 
-#         # desired button of your choice 
-#         if cv2.waitKey(1) & 0xFF == ord('q'): 
-#             break
-
-#     # After the loop release the cap object 
-#     vid.release() 
-#     # Destroy all the windows 
-#     cv2.destroyAllWindows() 
-
-
-def pixelToBase(roate, scale, Ox, Oy, x, y):
-    scaledx, scaledy = numpy.array([x * scale, y * scale])
-    rotated = numpy.dot(rotate, numpy.array([scaledx,scaledy]))
-    origin = numpy.array([Ox,Oy])
+def pixelToBase(rotate, scale, origin, x, y):
+    scaled = numpy.array([x * scale, y * scale])
+    rotated = numpy.dot(rotate, scaled)
     return numpy.subtract(rotated, origin)
 
 
 def pixelToReal(x, y, scale, rotate):
     scaledx, scaledy = numpy.array([x * scale, y * scale])
-
     rotated = numpy.dot(rotate, numpy.array([scaledx,scaledy]))
-
     return rotated
-
-    # return numpy.add(scaledxy, rotated)
     
 
 def getAngle(pointA, pointB, pointC):
@@ -131,7 +60,6 @@ def getAngle(pointA, pointB, pointC):
     return angle
 
 
-
 def getRotationMatrix(pointA, pointB, pointC):
     theta = getAngle(pointA, pointB, pointC)
 
@@ -139,7 +67,6 @@ def getRotationMatrix(pointA, pointB, pointC):
         [math.cos(theta), -math.sin(theta)],
         [math.sin(theta), math.cos(theta)]
     ])
-    print("this is rotate: ", rotate)
     return rotate
 
 
@@ -173,7 +100,7 @@ def getImg():
         exit()
 
     ret, frame = vid.read() 
-    
+    # frame = cv2.imread('botty.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -185,7 +112,9 @@ def getImg():
 
     scale = 0
     rotate = []
-    
+    foundbase = False
+    origin = []
+     
     while True:
         cv2.imshow('dst', dst)
 
@@ -193,7 +122,6 @@ def getImg():
 
         for c in clicked:
             cv2.circle(dst, (c[0],c[1]), 3, (255,0,0), 5)
-
 
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
@@ -205,12 +133,29 @@ def getImg():
             scale = getScale(clicked[0], clicked[1], clicked[2])
             rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
 
-        if len(clicked) == 3 and len(pixels) == 1:
-            coords = pixelToReal(pixels[0][0], pixels[0][1], scale, rotate)
-            print(coords[0], coords[1])
-            break
-            
 
+            origin =  pixelToReal(clicked[0][1], clicked[2][0], scale, rotate)
+            origin = numpy.array([origin[0] * scale, origin[1]*scale])
+
+
+            #circle our origin
+            cv2.circle(dst, (clicked[0][1], clicked[2][0]), 3, (0,255,0), 5)
+
+
+            #Save image and config
+            filename = "dots" + ".jpg"
+            cv2.imwrite(filename, dst)
+            saveConfig(origin, scale, rotate)
+            break
+
+        # if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
+        #     origin = pixelToReal(pixels[0][0], pixels[0][1], scale, rotate)
+        #     cv2.circle(dst, (pixels[0][0], pixels[0][1]), 3, (0,255,0), 5)
+        #     print(origin[0], origin[1])
+        #     filename = "dots" + ".jpg"
+        #     cv2.imwrite(filename, dst)
+        #     saveConfig(origin, scale, rotate)
+        #     break
 
         
 

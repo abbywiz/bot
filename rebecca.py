@@ -1,8 +1,19 @@
 import time
 import cv2 
 import apriltag
+import math
+import numpy
+import json
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
 
+rotate = []
+scale = 0
+origin = []
+
+def pixelToBase(x, y):
+    scaled = numpy.array([x * scale, y * scale])
+    rotated = numpy.dot(rotate, scaled)
+    return numpy.subtract(rotated, origin)
 
 # Accepts real world coordinates for where to put the gripper
 # We think it's in respect to the base frame
@@ -15,17 +26,11 @@ def pickAndPlace(x,y,z,pitch):
     while i<3:
 
         # set initial arm and gripper pose
+        #bot.arm.set_ee_pose_components(y=-0.3, z=0.2) #home base?
         
         bot.gripper.open()
-
-        # get the ArmTag pose
-        #bot.arm.set_ee_pose_components(y=-0.3, z=0.2) #home base?
+        
         #time.sleep(0.5)
-
-        ## TODO: Call set_ee_pose_matrix with T from base link to gripper
-        # Transformation Matrix representing the transform from the /<robot_name>/base_link frame to the /<robot_name>/ee_gripper_link frame
-
-        #Do we need base to gripper matrix here?
 
         # pick up all the objects and drop them in a virtual basket in front of the robot
         bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=pitch)
@@ -56,30 +61,29 @@ def getApril(img):
 
     # loop over the AprilTag detection results
     #TODO: conditional statement "if april tag 1 ... put it here"
-    if results.size() > 0:
+    # if results.size() > 0:
+    for r in results:
 
         # print(r.tag_id)
-        if results[0].tag_id == 0:
+        # if results[0].tag_id == 0:
+        if results[0] is not None:
             # extract the bounding box (x, y)-coordinates for the AprilTag
             # and convert each of the (x, y)-coordinate pairs to integers
             (ptA, ptB, ptC, ptD) = r.corners
 
             centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
             centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
-
             #points in camera space
 
-            #Use transformation matrix here
-            #TODO: find transform from camera to gripper
-            # do we need calibration matrix here
-            pickAndPlace(centerx,centery,0.04,0.5)
+            #transform to coords in base link frame of reference
+            block = pixelToBase(centerx,centery)
+
+            pickAndPlace(block[0],block[y],0.04,0.5)
 
 
-
- 
 def captureVideo(): 
     # define a video capture object 
-    vid = cv2.VideoCapture(0) 
+    vid = cv2.VideoCapture(2) 
 
     if not vid.isOpened():
         print("Cannot open camera")
@@ -120,4 +124,16 @@ def captureVideo():
     
 # pickAndPlace(0.0,0.2,0.04,0.5)
 
-captureVideo()
+
+if __name__=="__main__": 
+    with open('config.json') as openfile:
+        json_object = json.load(openfile)
+
+    origin = numpy.array(json_object["origin"])
+    scale = (json_object["scale"])
+    rotate = nump.array(json_object["rotate"])
+
+    if origin is None or scale is None or rotate is None:
+        print("Error with camera config")
+
+    captureVideo()
