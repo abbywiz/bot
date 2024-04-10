@@ -9,6 +9,7 @@ from interbotix_xs_modules.arm import InterbotixManipulatorXS
 rotate = []
 scale = 0
 origin = []
+ran = False
 
 def pixelToBase(x, y):
     scaled = numpy.array([x * scale, y * scale])
@@ -78,7 +79,7 @@ def getApril(img):
             #transform to coords in base link frame of reference
             block = pixelToBase(centerx,centery)
 
-            pickAndPlace(block[0],block[y],0.04,0.5)
+            pickAndPlace(block[0]+.07,block[1]+.02,0.01,0.5)
 
 
 def captureVideo(): 
@@ -131,9 +132,11 @@ if __name__=="__main__":
 
     origin = numpy.array(json_object["origin"])
     scale = (json_object["scale"])
-    rotate = nump.array(json_object["rotate"])
+    rotate = numpy.array(json_object["rotate"])
 
     if origin is None or scale is None or rotate is None:
         print("Error with camera config")
 
-    captureVideo()
+    if ran == False:
+        captureVideo()
+        ran = True
