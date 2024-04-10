@@ -79,7 +79,7 @@ def getApril(img):
             #transform to coords in base link frame of reference
             block = pixelToBase(centerx,centery)
 
-            pickAndPlace(block[0]+.07,block[1]+.02,0.01,0.5)
+            pickAndPlace(block[0]+.085,block[1]+.02,0.25,0.5)
 
 
 def captureVideo(): 
@@ -111,6 +111,9 @@ def captureVideo():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
+        if ran == True:
+            break
+
     # After the loop release the cap object 
     vid.release() 
     # Destroy all the windows
@@ -138,5 +141,6 @@ if __name__=="__main__":
         print("Error with camera config")
 
     if ran == False:
-        captureVideo()
         ran = True
+        captureVideo()
+        
