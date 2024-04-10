@@ -31,32 +31,31 @@ def click_event(event, x, y, flags, param):
   
         # displaying the coordinates 
         # on the Shell 
-        print(x, ' ', y) 
+
         clicked.append([x,y])
 
     if event == cv2.EVENT_RBUTTONDOWN:
-        print("RIGHT: ", x, ' ', y) 
         pixels.append([x,y])
 
 
 
 def pixelToBase(rotate, scale, origin, x, y):
-    scaled = numpy.array([x * scale, y * scale])
-    rotated = numpy.dot(rotate, scaled)
-    return numpy.subtract(rotated, origin)
+    x = x - origin[0]
+    y = y - origin[1]
+    print("Transformed x and y: ", x, y)
 
-
-def pixelToReal(x, y, scale, rotate):
-    scaledx, scaledy = numpy.array([x * scale, y * scale])
-    rotated = numpy.dot(rotate, numpy.array([scaledx,scaledy]))
-    return rotated
+    rotated = rotate.T @ (numpy.array([[x,y]]).T)
+    print("Rotated: ", rotated)
+    print("Rotation Matrix: ", rotate)
+    return  rotated * scale
     
 
 def getAngle(pointA, pointB, pointC):
     pointZ = (pointB[0], pointA[1])
-    deltaB = abs(pointB[1] - pointZ[1])
-    deltaA = abs(pointA[0] - pointZ[0])
+    deltaB = (pointB[1] - pointZ[1])
+    deltaA = (pointA[0] - pointZ[0])
     angle = math.atan2(deltaB,deltaA)
+    print("ANGLE: ", angle)
     return angle
 
 
@@ -99,8 +98,8 @@ def getImg():
         print("Cannot open camera")
         exit()
 
-    ret, frame = vid.read() 
-    # frame = cv2.imread('botty.jpg', 1) 
+    # ret, frame = vid.read() 
+    frame = cv2.imread('botty.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -133,31 +132,93 @@ def getImg():
             #cliked[0] is A
             #clicked[1] is B
             #clicked[2] is C
+            print(clicked[0][0])
+            A = numpy.array(
+                [
+                    [clicked[0][0]], 
+                    [clicked[0][1]], 
+                    [0]
+                ]
+                )
+
+            B = numpy.array(
+                [
+                    [clicked[1][0]], 
+                    [clicked[1][1]], 
+                    [0]
+                ]
+            )    
+            C = numpy.array(
+                [
+                    [clicked[2][0]], 
+                    [clicked[2][1]], 
+                    [0]
+                ]
+            )   
+
+
+
+
             scale = getScale(clicked[0], clicked[1], clicked[2])
             rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
 
             #Calculate the oritin
             #Ay Cx
-            origin =  pixelToReal(clicked[0][1], clicked[2][0], scale, rotate)
-            # origin = numpy.array([origin[0] * scale, origin[1]*scale])
+            # origin =  pixelToReal(clicked[0][1], clicked[2][0], scale, rotate)
+            
 
+
+            Px = B - A
+            NormalPx = Px / numpy.linalg.norm(Px)
+            Pz = numpy.array([
+                            [0],
+                            [0],
+                            [1]])
+
+            Px3D = numpy.array([Px[0], Px[1], [0]])
+
+            #Maybe switch
+            print("PX3d", Px3D)
+            print("PZ: ", Pz)
+            Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
+            NormalPy = Py / numpy.linalg.norm(Py)
+            print("PY: ", Py)
+
+            bc = numpy.linalg.norm(B - C)
+            print("BC: ", bc)
+
+            pybc =  NormalPy * numpy.linalg.norm(B - C)
+            print("Py * Bc", pybc)
+
+            print("A reshped: ",  A.reshape(-1))
+
+            originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
+            print("OrigininR", originRinI)
+            origin = originRinI[:-1]
+
+            
+            print("Origin: ", origin)
 
             #circle our origin
-            cv2.circle(dst, (clicked[0][1], clicked[2][0]), 3, (0,255,0), 5)
+            cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
             #Save image and config
             filename = "dots" + ".jpg"
             cv2.imwrite(filename, dst)
             saveConfig(origin, scale, rotate)
-            break
 
-        # if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
-        #     origin = pixelToReal(pixels[0][0], pixels[0][1], scale, rotate)
-        #     cv2.circle(dst, (pixels[0][0], pixels[0][1]), 3, (0,255,0), 5)
-        #     print(origin[0], origin[1])
-        #     filename = "dots" + ".jpg"
-        #     cv2.imwrite(filename, dst)
-        #     saveConfig(origin, scale, rotate)
-        #     break
+
+        if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
+            # cv2.circle(dst, (pixels[0][0], pixels[0][1]), 3, (0,255,0), 5)
+
+            print("Clicked herw", pixels[0][0], pixels[0][1])
+            cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
+            points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
+            print("WRT the base", points[0], points[1])
+
+            filename = "dots" + ".jpg"
+            cv2.imwrite(filename, dst)
+            saveConfig(origin, scale, rotate)
+            break
 
         
 

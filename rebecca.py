@@ -79,7 +79,7 @@ def getApril(img):
             #transform to coords in base link frame of reference
             block = pixelToBase(centerx,centery)
 
-            pickAndPlace(block[0]+.085,block[1]+.02,0.25,0.5)
+            pickAndPlace(block[0],-(block[1]),0.025,0.5)
 
 
 def captureVideo(): 
@@ -108,10 +108,7 @@ def captureVideo():
         # the 'q' button is set as the 
         # quitting button you may use any 
         # desired button of your choice 
-        if cv2.waitKey(1) & 0xFF == ord('q'): 
-            break
-
-        if ran == True:
+        if (cv2.waitKey(1) & 0xFF == ord('q')) or ran == True: 
             break
 
     # After the loop release the cap object 
