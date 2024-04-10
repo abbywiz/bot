@@ -11,10 +11,11 @@ scale = 0
 origin = []
 ran = False
 
-def pixelToBase(x, y):
-    scaled = numpy.array([x * scale, y * scale])
-    rotated = numpy.dot(rotate, scaled)
-    return numpy.subtract(rotated, origin)
+def pixelToBase(rotate, scale, origin, x, y):
+    x = x - origin[0]
+    y = y - origin[1]
+    rotated = rotate.T @ (numpy.array([[x,y]]).T)
+    return  rotated * scale
 
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
