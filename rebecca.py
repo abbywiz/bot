@@ -11,7 +11,7 @@ scale = 0
 origin = []
 ran = False
 
-def pixelToBase(rotate, scale, origin, x, y):
+def pixelToBase(x, y):
     x = x - origin[0]
     y = y - origin[1]
     rotated = rotate.T @ (numpy.array([[x,y]]).T)
@@ -80,7 +80,7 @@ def getApril(img):
             #transform to coords in base link frame of reference
             block = pixelToBase(centerx,centery)
 
-            pickAndPlace(block[0],-(block[1]),0.025,0.5)
+            pickAndPlace(block[0][0] - 0.005,-(block[1][0])-0.01,0.025,0.5)
 
 
 def captureVideo(): 
