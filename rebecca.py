@@ -16,7 +16,7 @@ def pixelToBase(x, y):
     return numpy.subtract(rotated, origin)
 
 # Accepts real world coordinates for where to put the gripper
-# We think it's in respect to the base frame
+# In respect to the base frame
 def pickAndPlace(x,y,z,pitch):
     # Initialize the arm module along with the pointcloud and armtag modules
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)

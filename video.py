@@ -74,11 +74,11 @@ def getScale(pointA, pointB, pointC):
     width = (pointB[0] - pointC[0], pointB[1] - pointC[1])
     height = (pointA[0] - pointB[0], pointA[1] - pointB[1])
 
-    # 5.5 inches is 0.1397 meters
+    # 5.78 inches is 0.146812
     #width
-    scaleW = 0.1397 / width[0]
+    scaleW = 0.146812 / width[0]
 
-    #11 inches is 0.104775 meters
+    # is 0.104775 meters
     #hieght
     #4.125
     scaleH = 0.104775 / height[1]
@@ -130,18 +130,20 @@ def getImg():
         if len(clicked) == 3 and scale == 0:
             # So height O width
             #click in order of A,B,C
+            #cliked[0] is A
+            #clicked[1] is B
+            #clicked[2] is C
             scale = getScale(clicked[0], clicked[1], clicked[2])
             rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
 
-
+            #Calculate the oritin
+            #Ay Cx
             origin =  pixelToReal(clicked[0][1], clicked[2][0], scale, rotate)
-            origin = numpy.array([origin[0] * scale, origin[1]*scale])
+            # origin = numpy.array([origin[0] * scale, origin[1]*scale])
 
 
             #circle our origin
             cv2.circle(dst, (clicked[0][1], clicked[2][0]), 3, (0,255,0), 5)
-
-
             #Save image and config
             filename = "dots" + ".jpg"
             cv2.imwrite(filename, dst)
