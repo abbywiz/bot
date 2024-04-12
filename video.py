@@ -11,68 +11,6 @@ clicked = []
 rotate = []
 scale = 0
 deviation = .0019
-
-
-def clamp(n, min, max): 
-    if n < min: 
-        return min
-    elif n > max: 
-        return max
-    else: 
-        return n 
-
-def rgb_to_hsv(color): 
-  
-    # R, G, B values are divided by 255 
-    # to change the range from 0..255 to 0..1: 
-    r = color[0]
-    g = color[1]
-    b = color[2] 
-
-    h,s,v = colorsys.rgb_to_hsv(r, g, b)
-    return [h, s, v]
-    
-
-# returns pixel values of box
-
-def findColor(color, image):
-
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    # lower_bound = numpy.array([max(0, color[0]-deviation), color[1], color[2]])
-    # upper_bound = numpy.array([min(179, color[0] + deviation), color[1], color[2]])
-    # for c in color:
-    #     lower_bound.append(clamp((c-deviation), 0, 255))
-    #     upper_bound.append(clamp((c+deviation), 0, 255))
-        # lower_bound.append(c)
-        # upper_bound.append(c)
-    # lower_bound = rgb_to_hsv(lower_bound)
-    # upper_bound = rgb_to_hsv(upper_bound)
-
-
-
-    lower_bound = [max(0.0, color[0] - deviation * 100.0), max(0.0, color[1] - deviation * 100.0), max(0.0, color[2] - deviation * 360.0)]
-    upper_bound = [min(179.0, color[0] + deviation * 100.0), min(255.0, color[1] + deviation * 100.0), min(255.0, color[2] + deviation * 360.0)]
-
-
-    print("Color Range HSV: ", str(lower_bound), str(upper_bound))
-
-    mask = cv2.inRange(hsv, numpy.array(lower_bound), numpy.array(upper_bound))
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    if len(contours) == 0:
-        print("No color in range found! Range: ", str(lower_bound), str(upper_bound))
-
-    boxes = []
-    for c in contours:
-        x,y,w,h = cv2.boundingRect(c)
-        image = cv2.rectangle(image, (x,y), (x+w, y+h), (0,0,255), 2)
-        cv2.imshow("dst", image)
-        corners = numpy.array([(x,y), (x+w,y), (x+w, y+h), (x, y+h)],dtype=numpy.int32)
-        centerx = (int(corners[0][0]) + int(corners[1][0]) + int(corners[2][0]) + int(corners[3][0])) / 4
-        centery = (int(corners[0][1]) + int(corners[1][1]) + int(corners[2][1]) + int(corners[3][1])) / 4
-        boxes.append([centerx,centery])
-    return boxes
     
 
 
@@ -157,14 +95,14 @@ def getImg():
 
     global global_params
 
-    vid = cv2.VideoCapture(0) 
+    vid = cv2.VideoCapture(2) 
 
     if not vid.isOpened():
         print("Cannot open camera")
         exit()
 
-    # ret, frame = vid.read() 
-    frame = cv2.imread('pic.jpg', 1) 
+    ret, frame = vid.read() 
+    # frame = cv2.imread('pic.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -190,78 +128,74 @@ def getImg():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
-        color = (0,.2418,.9569)
-        findColor(color, dst)
-        filename = "dots" + ".jpg"
-        cv2.imwrite(filename, dst)
 
+        if len(clicked) == 3 and scale == 0:
+            # So height O width
+            #click in order of A,B,C
+            #cliked[0] is A
+            #clicked[1] is B
+            #clicked[2] is C
+            print(clicked[0][0])
+            A = numpy.array(
+                [
+                    [clicked[0][0]], 
+                    [clicked[0][1]], 
+                    [0]
+                ]
+                )
 
-        # if len(clicked) == 3 and scale == 0:
-        #     # So height O width
-        #     #click in order of A,B,C
-        #     #cliked[0] is A
-        #     #clicked[1] is B
-        #     #clicked[2] is C
-        #     print(clicked[0][0])
-        #     A = numpy.array(
-        #         [
-        #             [clicked[0][0]], 
-        #             [clicked[0][1]], 
-        #             [0]
-        #         ]
-        #         )
-
-        #     B = numpy.array(
-        #         [
-        #             [clicked[1][0]], 
-        #             [clicked[1][1]], 
-        #             [0]
-        #         ]
-        #     )    
-        #     C = numpy.array(
-        #         [
-        #             [clicked[2][0]], 
-        #             [clicked[2][1]], 
-        #             [0]
-        #         ]
-        #     )   
+            B = numpy.array(
+                [
+                    [clicked[1][0]], 
+                    [clicked[1][1]], 
+                    [0]
+                ]
+            )    
+            C = numpy.array(
+                [
+                    [clicked[2][0]], 
+                    [clicked[2][1]], 
+                    [0]
+                ]
+            )   
 
 
 
-        #     #Get scale and rotation matrix
-        #     scale = getScale(clicked[0], clicked[1], clicked[2])
-        #     rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
+            #Get scale and rotation matrix
+            scale = getScale(clicked[0], clicked[1], clicked[2])
+            rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
 
-        #     #Calculate the oritin
-        #     Px = B - A
-        #     NormalPx = Px / numpy.linalg.norm(Px)
-        #     Pz = numpy.array([
-        #                     [0],
-        #                     [0],
-        #                     [1]])
+            #Calculate the oritin
+            Px = B - A
+            NormalPx = Px / numpy.linalg.norm(Px)
+            Pz = numpy.array([
+                            [0],
+                            [0],
+                            [1]])
 
-        #     Px3D = numpy.array([Px[0], Px[1], [0]])
+            Px3D = numpy.array([Px[0], Px[1], [0]])
 
-        #     Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
-        #     NormalPy = Py / numpy.linalg.norm(Py)
-        #     bc = numpy.linalg.norm(B - C)
+            Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
+            NormalPy = Py / numpy.linalg.norm(Py)
+            bc = numpy.linalg.norm(B - C)
 
-        #     pybc =  NormalPy * numpy.linalg.norm(B - C)
-
-
-        #     originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
-        #     origin = originRinI[:-1]
+            pybc =  NormalPy * numpy.linalg.norm(B - C)
 
 
-        #     #circle our origin
-        #     cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
-        #     #Save image and config
-        #     filename = "dots" + ".jpg"
-        #     cv2.imwrite(filename, dst)
-        #     saveConfig(origin, scale, rotate)
+            originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
+            origin = originRinI[:-1]
 
 
-        # # Run this to click a point
+            #circle our origin
+            cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
+            #Save image and config
+            filename = "dots" + ".jpg"
+            cv2.imwrite(filename, dst)
+            saveConfig(origin, scale, rotate)
+            break
+
+
+        # Run this to click a point
         # if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
         #     #Pink Block color is 77,82,211
         #     upper = (80,85,214)
