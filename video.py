@@ -10,6 +10,34 @@ clicked = []
 rotate = []
 scale = 0
 
+# returns pixel values of box
+
+def findColor(colorRange, image):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGRHSV)
+
+    lower_bound = numpy.array([colorRange[0]])
+    upper_bound = numpy.array([colorRange[1]])
+
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if len(contours):
+        print("No color in range found! Range: ", str(colorRange))
+
+    boxes = []
+    for c in contours:
+        x,y,w,h = cv2.boundingRect(c)
+        cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0), 2)
+
+        corners = [(x,y), (x+w,y), (x+w, y+h), (x, y+h)]
+        centerx = (int(corners[0][0]) + int(corners[1][0]) + int(corners[2][0]) + int(corners[3][0])) / 4
+        centery = (int(corners[0][1]) + int(corners[1][1]) + int(corners[2][1]) + int(corners[3][1])) / 4
+        boxes.append([centerx,centery])
+    return boxes
+    
+
+
 def saveConfig(origin, scale, rotate):
     config = {
     "origin": origin.tolist(),
@@ -92,14 +120,14 @@ def getImg():
 
     global global_params
 
-    vid = cv2.VideoCapture(0) 
+    vid = cv2.VideoCapture(2) 
 
     if not vid.isOpened():
         print("Cannot open camera")
         exit()
 
-    # ret, frame = vid.read() 
-    frame = cv2.imread('botty.jpg', 1) 
+    ret, frame = vid.read() 
+    # frame = cv2.imread('botty.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -158,16 +186,11 @@ def getImg():
 
 
 
-
+            #Get scale and rotation matrix
             scale = getScale(clicked[0], clicked[1], clicked[2])
             rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
 
             #Calculate the oritin
-            #Ay Cx
-            # origin =  pixelToReal(clicked[0][1], clicked[2][0], scale, rotate)
-            
-
-
             Px = B - A
             NormalPx = Px / numpy.linalg.norm(Px)
             Pz = numpy.array([
@@ -177,27 +200,16 @@ def getImg():
 
             Px3D = numpy.array([Px[0], Px[1], [0]])
 
-            #Maybe switch
-            print("PX3d", Px3D)
-            print("PZ: ", Pz)
             Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
             NormalPy = Py / numpy.linalg.norm(Py)
-            print("PY: ", Py)
-
             bc = numpy.linalg.norm(B - C)
-            print("BC: ", bc)
 
             pybc =  NormalPy * numpy.linalg.norm(B - C)
-            print("Py * Bc", pybc)
 
-            print("A reshped: ",  A.reshape(-1))
 
             originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
-            print("OrigininR", originRinI)
             origin = originRinI[:-1]
 
-            
-            print("Origin: ", origin)
 
             #circle our origin
             cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
@@ -207,17 +219,20 @@ def getImg():
             saveConfig(origin, scale, rotate)
 
 
+        # Run this to click a point
         if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
-            # cv2.circle(dst, (pixels[0][0], pixels[0][1]), 3, (0,255,0), 5)
-
-            print("Clicked herw", pixels[0][0], pixels[0][1])
-            cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
-            points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
-            print("WRT the base", points[0], points[1])
+            #Pink Block color is 77,82,211
+            upper = (80,85,214)
+            lower = (74,79,208)
+            colorRange = [lower, upper]
+            findColor(colorRange, dst)
+            # print("Clicked here", pixels[0][0], pixels[0][1])
+            # cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
+            # points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
+            # print("WRT the base", points[0], points[1])
 
             filename = "dots" + ".jpg"
             cv2.imwrite(filename, dst)
-            saveConfig(origin, scale, rotate)
             break
 
         
@@ -227,6 +242,7 @@ def getImg():
     cv2.destroyAllWindows() 
 
 getImg()
+
 
 
 

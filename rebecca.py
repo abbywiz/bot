@@ -10,6 +10,9 @@ rotate = []
 scale = 0
 origin = []
 ran = False
+box1 = [] #april tag id = 1
+box2 = [] #april tag id = 2
+box3 = [] #april tag id = 3
 
 def pixelToBase(x, y):
     x = x - origin[0]
@@ -19,33 +22,34 @@ def pixelToBase(x, y):
 
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
-def pickAndPlace(x,y,z,pitch):
+def pickAndPlace(x,y,z,pitch,finalx, finaly):
     # Initialize the arm module along with the pointcloud and armtag modules
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
-    i=2
+
+    # Initial Wake Up Position
     bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
-    while i<3:
 
-        # set initial arm and gripper pose
-        #bot.arm.set_ee_pose_components(y=-0.3, z=0.2) #home base?
-        
-        bot.gripper.open()
-        
-        #time.sleep(0.5)
+    
+    bot.gripper.open()
+    
+    #time.sleep(0.5)
 
-        # pick up all the objects and drop them in a virtual basket in front of the robot
-        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=pitch)
-        bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
-        bot.gripper.close()
+    # pick up all the objects and drop them in a virtual basket in front of the robot
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
+    bot.gripper.close()
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
 
-        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=pitch)
+    time.sleep(0.5)
 
-        bot.arm.set_ee_pose_components(x=0.0,y = -0.2 ,z=0.2)
-        bot.gripper.open()
-        
-        i+=1
+    # Final Destination (Cup drop)
+    bot.arm.set_ee_pose_components(x=finalx, y=finaly, z=0.2)
+    bot.gripper.open()
+    
 
+
+    # Final Pre Sleep Position
     bot.arm.set_ee_pose_components(x=0.3, z=0.2)
     bot.arm.go_to_sleep_pose()
 
@@ -62,13 +66,13 @@ def getApril(img):
     results = detector.detect(gray)
 
     # loop over the AprilTag detection results
-    #TODO: conditional statement "if april tag 1 ... put it here"
     # if results.size() > 0:
-    for r in results:
+    boxes = []
+    for i in range(1,4):
 
         # print(r.tag_id)
-        # if results[0].tag_id == 0:
-        if results[0] is not None:
+        if results[i].tag_id == i:
+        # if results[0] is not None:
             # extract the bounding box (x, y)-coordinates for the AprilTag
             # and convert each of the (x, y)-coordinate pairs to integers
             (ptA, ptB, ptC, ptD) = r.corners
@@ -79,8 +83,13 @@ def getApril(img):
 
             #transform to coords in base link frame of reference
             block = pixelToBase(centerx,centery)
+            boxes.append(block)
+    if len(boxes) == 3:
+        box1 = boxes[0]
+        box2 = boxes[1]
+        box3 = boxes[2]
 
-            pickAndPlace(block[0][0] - 0.005,-(block[1][0])-0.01,0.025,0.5)
+
 
 
 def captureVideo(): 
@@ -101,7 +110,15 @@ def captureVideo():
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
-        getApril(frame)
+
+        if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
+            getApril(frame)
+
+        #given pink
+        ##findcolor nad pick and place
+
+
+
         # Display the resulting frame 
         cv2.imshow('frame', frame)
 
@@ -141,4 +158,7 @@ if __name__=="__main__":
     if ran == False:
         ran = True
         captureVideo()
-        
+
+
+
+# pickAndPlace(block[0],-(block[1]),0.025,0.5)
