@@ -4,41 +4,71 @@ import apriltag
 import numpy
 import math
 import json
+import colorsys
 
 pixels = []
 clicked = []
 rotate = []
 scale = 0
-colorRange = 50
+deviation = .0019
+
+
+def clamp(n, min, max): 
+    if n < min: 
+        return min
+    elif n > max: 
+        return max
+    else: 
+        return n 
+
+def rgb_to_hsv(color): 
+  
+    # R, G, B values are divided by 255 
+    # to change the range from 0..255 to 0..1: 
+    r = color[0]
+    g = color[1]
+    b = color[2] 
+
+    h,s,v = colorsys.rgb_to_hsv(r, g, b)
+    return [h, s, v]
+    
 
 # returns pixel values of box
 
 def findColor(color, image):
 
-
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    lower_bound = []
-    upper_bound = []
-    for c in color:
-        lower_bound.append(c-colorRange)
-        upper_bound.append(c+colorRange)
+    # lower_bound = numpy.array([max(0, color[0]-deviation), color[1], color[2]])
+    # upper_bound = numpy.array([min(179, color[0] + deviation), color[1], color[2]])
+    # for c in color:
+    #     lower_bound.append(clamp((c-deviation), 0, 255))
+    #     upper_bound.append(clamp((c+deviation), 0, 255))
+        # lower_bound.append(c)
+        # upper_bound.append(c)
+    # lower_bound = rgb_to_hsv(lower_bound)
+    # upper_bound = rgb_to_hsv(upper_bound)
 
+
+
+    lower_bound = [max(0.0, color[0] - deviation * 100.0), max(0.0, color[1] - deviation * 100.0), max(0.0, color[2] - deviation * 360.0)]
+    upper_bound = [min(179.0, color[0] + deviation * 100.0), min(255.0, color[1] + deviation * 100.0), min(255.0, color[2] + deviation * 360.0)]
+
+
+    print("Color Range HSV: ", str(lower_bound), str(upper_bound))
 
     mask = cv2.inRange(hsv, numpy.array(lower_bound), numpy.array(upper_bound))
-
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    if len(contours):
-        print("No color in range found! Range: ", str(colorRange))
+    
+    if len(contours) == 0:
+        print("No color in range found! Range: ", str(lower_bound), str(upper_bound))
 
     boxes = []
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)
-        cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0), 2)
-        print("found a box!!")
+        image = cv2.rectangle(image, (x,y), (x+w, y+h), (0,0,255), 2)
+        cv2.imshow("dst", image)
         corners = numpy.array([(x,y), (x+w,y), (x+w, y+h), (x, y+h)],dtype=numpy.int32)
-        cv2.polylines(image, [corners], isClosed=True, color=(0, 255, 0), thickness=2)
         centerx = (int(corners[0][0]) + int(corners[1][0]) + int(corners[2][0]) + int(corners[3][0])) / 4
         centery = (int(corners[0][1]) + int(corners[1][1]) + int(corners[2][1]) + int(corners[3][1])) / 4
         boxes.append([centerx,centery])
@@ -127,14 +157,14 @@ def getImg():
 
     global global_params
 
-    vid = cv2.VideoCapture(2) 
+    vid = cv2.VideoCapture(0) 
 
     if not vid.isOpened():
         print("Cannot open camera")
         exit()
 
-    ret, frame = vid.read() 
-    # frame = cv2.imread('botty.jpg', 1) 
+    # ret, frame = vid.read() 
+    frame = cv2.imread('pic.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -160,7 +190,7 @@ def getImg():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
-        color = (77,82,211)
+        color = (0,.2418,.9569)
         findColor(color, dst)
         filename = "dots" + ".jpg"
         cv2.imwrite(filename, dst)
@@ -254,6 +284,7 @@ def getImg():
     cv2.destroyAllWindows() 
 
 getImg()
+
 
 
 
