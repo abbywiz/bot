@@ -9,16 +9,23 @@ pixels = []
 clicked = []
 rotate = []
 scale = 0
+colorRange = 20
 
 # returns pixel values of box
 
-def findColor(colorRange, image):
+def findColor(color, image):
+
+
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    lower_bound = numpy.array([colorRange[0]])
-    upper_bound = numpy.array([colorRange[1]])
+    lower_bound = []
+    upper_bound = []
+    for c in color:
+        lower_bound.append(c-colorRange)
+        upper_bound.append(c+colorRange)
 
-    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+
+    mask = cv2.inRange(hsv, numpy.array(lower_bound), numpy.array(upper_bound))
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -152,10 +159,8 @@ def getImg():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
-        upper = (80,85,214)
-        lower = (74,79,208)
-        colorRange = [lower, upper]
-        findColor(colorRange, dst)
+        color = (77,82,211)
+        findColor(color, dst)
         filename = "dots" + ".jpg"
         cv2.imwrite(filename, dst)
 
