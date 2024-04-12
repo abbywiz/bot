@@ -9,7 +9,7 @@ pixels = []
 clicked = []
 rotate = []
 scale = 0
-colorRange = 20
+colorRange = 50
 
 # returns pixel values of box
 
@@ -36,8 +36,9 @@ def findColor(color, image):
     for c in contours:
         x,y,w,h = cv2.boundingRect(c)
         cv2.rectangle(image, (x,y), (x+w, y+h), (0,255,0), 2)
-
-        corners = [(x,y), (x+w,y), (x+w, y+h), (x, y+h)]
+        print("found a box!!")
+        corners = numpy.array([(x,y), (x+w,y), (x+w, y+h), (x, y+h)],dtype=numpy.int32)
+        cv2.polylines(image, [corners], isClosed=True, color=(0, 255, 0), thickness=2)
         centerx = (int(corners[0][0]) + int(corners[1][0]) + int(corners[2][0]) + int(corners[3][0])) / 4
         centery = (int(corners[0][1]) + int(corners[1][1]) + int(corners[2][1]) + int(corners[3][1])) / 4
         boxes.append([centerx,centery])
