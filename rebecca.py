@@ -13,6 +13,14 @@ ran = False
 box1 = [] #april tag id = 1
 box2 = [] #april tag id = 2
 box3 = [] #april tag id = 3
+color_red = [[0,100,100], [10,255,255]]
+color_green = [[0,100,100], [10,255,255]]
+color_gray = [[0,100,100], [10,255,255]]
+
+
+#findColors
+def findColor(color):
+    #return centerx and centery
 
 def pixelToBase(x, y):
     x = x - origin[0]
@@ -111,12 +119,14 @@ def captureVideo():
             break
 
 
-        if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
-            getApril(frame)
+        # if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
+        #     getApril(frame)
 
         #given pink
         ##findcolor nad pick and place
-
+        block = findColor(color_red)
+        # pickAndPlace(block[0],-(block[1]),0.025,0.5, box1[0], box1[1])
+        pickAndPlace(block[0],-(block[1]),0.025,0.5, .02, .05)
 
 
         # Display the resulting frame 
