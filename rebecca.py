@@ -19,8 +19,8 @@ color_gray = [[0,100,100], [10,255,255]]
 
 
 #findColors
-def findColor(color):
-    #return centerx and centery
+# def findColor(color):
+#     #return centerx and centery
 
 def pixelToBase(x, y):
     x = x - origin[0]
@@ -76,26 +76,29 @@ def getApril(img):
     # loop over the AprilTag detection results
     # if results.size() > 0:
     boxes = []
-    for i in range(1,4):
+    # for i in range(1,4):
+    for r in results:
+        print("Found April Tag!")
 
         # print(r.tag_id)
-        if results[i].tag_id == i:
+        # if r.tag_id == i:
         # if results[0] is not None:
-            # extract the bounding box (x, y)-coordinates for the AprilTag
-            # and convert each of the (x, y)-coordinate pairs to integers
-            (ptA, ptB, ptC, ptD) = r.corners
+        # extract the bounding box (x, y)-coordinates for the AprilTag
+        # and convert each of the (x, y)-coordinate pairs to integers
+        (ptA, ptB, ptC, ptD) = r.corners
 
-            centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
-            centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
-            #points in camera space
+        centerx = (int(ptA[0]) + int(ptB[0]) + int(ptC[0]) + int(ptD[0])) / 4
+        centery = (int(ptA[1]) + int(ptB[1]) + int(ptC[1]) + int(ptD[1])) / 4
+        #points in camera space
 
-            #transform to coords in base link frame of reference
-            block = pixelToBase(centerx,centery)
-            boxes.append(block)
-    if len(boxes) == 3:
+        #transform to coords in base link frame of reference
+        block = pixelToBase(centerx,centery)
+        boxes.append(block)
+    # if len(boxes) == 3:
+    if len(boxes) > 0:
         box1 = boxes[0]
-        box2 = boxes[1]
-        box3 = boxes[2]
+    #     box2 = boxes[1]
+    #     box3 = boxes[2]
 
 
 
@@ -120,13 +123,16 @@ def captureVideo():
 
 
         # if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
-        #     getApril(frame)
+        
+        getApril(frame)
+        if len(box1) > 0:
+            pickAndPlace(box1[0],-(box1[1]),0.025,0.5, .02, .05)
 
         #given pink
         ##findcolor nad pick and place
-        block = findColor(color_red)
+        # block = findColor(color_red)
         # pickAndPlace(block[0],-(block[1]),0.025,0.5, box1[0], box1[1])
-        pickAndPlace(block[0],-(block[1]),0.025,0.5, .02, .05)
+        # pickAndPlace(block[0],-(block[1]),0.025,0.5, .02, .05)
 
 
         # Display the resulting frame 
