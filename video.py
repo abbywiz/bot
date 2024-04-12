@@ -13,7 +13,7 @@ scale = 0
 # returns pixel values of box
 
 def findColor(colorRange, image):
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGRHSV)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     lower_bound = numpy.array([colorRange[0]])
     upper_bound = numpy.array([colorRange[1]])
@@ -83,7 +83,6 @@ def getAngle(pointA, pointB, pointC):
     deltaB = (pointB[1] - pointZ[1])
     deltaA = (pointA[0] - pointZ[0])
     angle = math.atan2(deltaB,deltaA)
-    print("ANGLE: ", angle)
     return angle
 
 
@@ -153,87 +152,94 @@ def getImg():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
-
-        if len(clicked) == 3 and scale == 0:
-            # So height O width
-            #click in order of A,B,C
-            #cliked[0] is A
-            #clicked[1] is B
-            #clicked[2] is C
-            print(clicked[0][0])
-            A = numpy.array(
-                [
-                    [clicked[0][0]], 
-                    [clicked[0][1]], 
-                    [0]
-                ]
-                )
-
-            B = numpy.array(
-                [
-                    [clicked[1][0]], 
-                    [clicked[1][1]], 
-                    [0]
-                ]
-            )    
-            C = numpy.array(
-                [
-                    [clicked[2][0]], 
-                    [clicked[2][1]], 
-                    [0]
-                ]
-            )   
+        upper = (80,85,214)
+        lower = (74,79,208)
+        colorRange = [lower, upper]
+        findColor(colorRange, dst)
+        filename = "dots" + ".jpg"
+        cv2.imwrite(filename, dst)
 
 
+        # if len(clicked) == 3 and scale == 0:
+        #     # So height O width
+        #     #click in order of A,B,C
+        #     #cliked[0] is A
+        #     #clicked[1] is B
+        #     #clicked[2] is C
+        #     print(clicked[0][0])
+        #     A = numpy.array(
+        #         [
+        #             [clicked[0][0]], 
+        #             [clicked[0][1]], 
+        #             [0]
+        #         ]
+        #         )
 
-            #Get scale and rotation matrix
-            scale = getScale(clicked[0], clicked[1], clicked[2])
-            rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
-
-            #Calculate the oritin
-            Px = B - A
-            NormalPx = Px / numpy.linalg.norm(Px)
-            Pz = numpy.array([
-                            [0],
-                            [0],
-                            [1]])
-
-            Px3D = numpy.array([Px[0], Px[1], [0]])
-
-            Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
-            NormalPy = Py / numpy.linalg.norm(Py)
-            bc = numpy.linalg.norm(B - C)
-
-            pybc =  NormalPy * numpy.linalg.norm(B - C)
-
-
-            originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
-            origin = originRinI[:-1]
-
-
-            #circle our origin
-            cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
-            #Save image and config
-            filename = "dots" + ".jpg"
-            cv2.imwrite(filename, dst)
-            saveConfig(origin, scale, rotate)
+        #     B = numpy.array(
+        #         [
+        #             [clicked[1][0]], 
+        #             [clicked[1][1]], 
+        #             [0]
+        #         ]
+        #     )    
+        #     C = numpy.array(
+        #         [
+        #             [clicked[2][0]], 
+        #             [clicked[2][1]], 
+        #             [0]
+        #         ]
+        #     )   
 
 
-        # Run this to click a point
-        if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
-            #Pink Block color is 77,82,211
-            upper = (80,85,214)
-            lower = (74,79,208)
-            colorRange = [lower, upper]
-            findColor(colorRange, dst)
-            # print("Clicked here", pixels[0][0], pixels[0][1])
-            # cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
-            # points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
-            # print("WRT the base", points[0], points[1])
 
-            filename = "dots" + ".jpg"
-            cv2.imwrite(filename, dst)
-            break
+        #     #Get scale and rotation matrix
+        #     scale = getScale(clicked[0], clicked[1], clicked[2])
+        #     rotate = getRotationMatrix(clicked[0], clicked[1], clicked[2])
+
+        #     #Calculate the oritin
+        #     Px = B - A
+        #     NormalPx = Px / numpy.linalg.norm(Px)
+        #     Pz = numpy.array([
+        #                     [0],
+        #                     [0],
+        #                     [1]])
+
+        #     Px3D = numpy.array([Px[0], Px[1], [0]])
+
+        #     Py = numpy.cross(Px3D.reshape(-1), Pz.reshape(-1))
+        #     NormalPy = Py / numpy.linalg.norm(Py)
+        #     bc = numpy.linalg.norm(B - C)
+
+        #     pybc =  NormalPy * numpy.linalg.norm(B - C)
+
+
+        #     originRinI = NormalPy * numpy.linalg.norm(B - C) + A.reshape(-1)
+        #     origin = originRinI[:-1]
+
+
+        #     #circle our origin
+        #     cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
+        #     #Save image and config
+        #     filename = "dots" + ".jpg"
+        #     cv2.imwrite(filename, dst)
+        #     saveConfig(origin, scale, rotate)
+
+
+        # # Run this to click a point
+        # if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
+        #     #Pink Block color is 77,82,211
+        #     upper = (80,85,214)
+        #     lower = (74,79,208)
+        #     colorRange = [lower, upper]
+        #     findColor(colorRange, dst)
+        #     # print("Clicked here", pixels[0][0], pixels[0][1])
+        #     # cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
+        #     # points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
+        #     # print("WRT the base", points[0], points[1])
+
+        #     filename = "dots" + ".jpg"
+        #     cv2.imwrite(filename, dst)
+        #     break
 
         
 
