@@ -5,24 +5,25 @@ import numpy
 import math
 import json
 import colorsys
+import os
 
 pixels = []
 clicked = []
 rotate = []
 scale = 0
 deviation = .0019
-colors = []
+
     
 
 
-def saveConfig(origin, scale, rotate):
+def saveConfig(origin, scale, rotate,colors):
     config = {
     "origin": origin.tolist(),
     "scale": scale,
     "rotate": rotate.tolist(),
-    "colors": colors
+    "colors": colors.tolist()
     }
-    json_object = json.dumps(config, indent=4)
+    json_object = json.dumps(config)
     with open("config.json", "w") as outfile:
         outfile.write(json_object)
 
@@ -103,8 +104,8 @@ def getImg():
         print("Cannot open camera")
         exit()
 
-    # ret, frame = vid.read() 
-    frame = cv2.imread('pic.jpg', 1) 
+    ret, frame = vid.read() 
+    # frame = cv2.imread('pic.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -199,6 +200,7 @@ def getImg():
         # Run this to click a point
         if len(pixels) == 3 and foundbase == False:
             #Click in order of red, gren, white
+            colors = []
             for p in pixels:
                 y = p[1]
                 x = p[0]
@@ -207,11 +209,10 @@ def getImg():
                 colorsR = dst[y,x,2]
                 colors.append([colorsR,colorsB,colorsG])
             foundbase = True
-            break
 
             filename = "dots" + ".jpg"
             cv2.imwrite(filename, dst)
-            saveConfig(origin, scale, rotate,colors)
+            saveConfig(origin, scale, rotate, numpy.array(colors))
             break
 
         
