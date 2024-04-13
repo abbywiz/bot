@@ -13,9 +13,9 @@ scale = 0
 origin = []
 
 #Colors
-color_red = [[0,100,100], [10,255,255]]
-color_green = [[0,100,100], [10,255,255]]
-color_gray = [[0,100,100], [10,255,255]]
+color_pink = [[0,100,100],[10,255,255]]
+color_green = [[50,50,50],[90,255,255]]
+color_grey= [[0,0,0],[100,255,50]]
 
 ran = False
 
@@ -36,6 +36,50 @@ class Coord:
 
     def __str__(self):
         return f"(X: {self.x}, Y: {self.y})"
+
+def findColor(color, image):
+
+    _,frame = vid.read()
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    lower_bound = numpy.array(color[0])
+    upper_bound = numpy.array(color[1])
+    # for c in color:
+    #     lower_bound.append(clamp((c-deviation), 0, 255))
+    #     upper_bound.append(clamp((c+deviation), 0, 255))
+        # lower_bound.append(c)
+        # upper_bound.append(c)
+    # lower_bound = rgb_to_hsv(lower_bound)
+    # upper_bound = rgb_to_hsv(upper_bound)
+
+
+
+    # lower_bound = [max(0.0, color[0] - deviation * 100.0), max(0.0, color[1] - deviation * 100.0), max(0.0, color[2] - deviation * 360.0)]
+    # upper_bound = [min(179.0, color[0] + deviation * 100.0), min(255.0, color[1] + deviation * 100.0), min(255.0, color[2] + deviation * 360.0)]
+
+
+    #print("Color Range HSV: ", str(lower_bound), str(upper_bound))
+
+    mask = cv2.inRange(hsv, numpy.array(lower_bound), numpy.array(upper_bound))
+    #result = cv2.bitwise_and(frame,frame,mask=mask)
+    #cv2.imshow('result',result)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # if len(contours) == 0:
+    #     print("No color in range found! Range: ", str(lower_bound), str(upper_bound))
+
+    boxes = []
+    for c in contours:
+        x,y,w,h = cv2.boundingRect(c)
+        image = cv2.rectangle(image, (x,y), (x+w, y+h), (0,0,255), 2)
+        cv2.imshow("dst", image)
+        corners = numpy.array([(x,y), (x+w,y), (x+w, y+h), (x, y+h)],dtype=numpy.int32)
+        centerx = (int(corners[0][0]) + int(corners[1][0]) + int(corners[2][0]) + int(corners[3][0])) / 4
+        centery = (int(corners[0][1]) + int(corners[1][1]) + int(corners[2][1]) + int(corners[3][1])) / 4
+        print("centerx:",centerx,"centery:",centery)
+        boxes.append([Coord(centerx,centery)])
+    return boxes
+
+
 
 def pixelToBase(x, y):
     x = x - origin[0]
@@ -99,6 +143,17 @@ def pickBox0ToBox1():
         pickAndPlace(x=box0.x+0.025,y=-(box0.y)-0.05,z=0.05,pitch=0.0, finalx=box1.x-0.005, finaly=-(box1.y))
 
 
+def pickBoxPinkToBox1(pink_coord):
+    if pink_coord is None:
+        print("Pink Box NOT FOUND")
+    if box1 is None:
+        print("Box 1 NOT FOUND")
+    else:
+        print("pink_block:", pink_coord)
+        print("box1:", box1)
+        pickAndPlace(x=pink_coord.x+0.025,y=-(pink_coord.y)-0.05,z=0.05,pitch=0.0, finalx=box1.x-0.005, finaly=-(box1.y))
+
+
 def getApril(img):
 
     global box0,box1,box2,box3
@@ -151,6 +206,16 @@ def captureVideo():
         print("Cannot open camera")
         exit()
 
+
+    #TODO: should we be using the undistored image for this?
+    # mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
+    #         [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
+    #         [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+    # dist =  numpy.array([[ 7.27892841e-01, -8.78018308e+00, 3.35198169e-02, 3.91299576e-02, 4.48245023e+01]])
+
+    # dst = cv2.undistort(frame, mtx, dist, None, None)
+    # cv2.namedWindow("dst")
+
     while(True): 
         
         # Capture the video frame by frame 
@@ -166,7 +231,12 @@ def captureVideo():
 
         #Pick Up Box 0
         # pickBox0ToHardCoded()
-        pickBox0ToBox1()
+        # pickBox0ToBox1()
+
+        rect = findColor(color_pink, frame)
+        for r in rect:
+            block =  pixelToBase(r.x,r.y)
+            pickBoxPinkToBox1(block)
 
  
 
