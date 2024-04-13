@@ -234,6 +234,8 @@ def captureVideo():
         # pickBox0ToBox1()
 
         rect = findColor(color_pink, frame)
+        if len(rect) == 0:
+            print("THERE ARE NO PINK :0")
         for r in rect:
             block =  pixelToBase(r.x,r.y)
             pickBoxPinkToBox1(block)
