@@ -4,7 +4,7 @@ import apriltag
 import math
 import numpy
 import json
-# from interbotix_xs_modules.arm import InterbotixManipulatorXS
+from interbotix_xs_modules.arm import InterbotixManipulatorXS
 
 
 #Globals
@@ -123,16 +123,16 @@ def getApril(img):
 
         #store base link coords in correct variable based on april tag id
         print("ID IS: ",r.tag_id)
-        if r.tag_id == 0:
+        if r.tag_id == 1:
             print("Found Test Tag!")
             box0 = block
-        elif r.tag_id == 1:
+        elif r.tag_id == 2:
             print("Found Box 1 Tag!")
             box1 = block
-        elif r.tag_id == 2:
+        elif r.tag_id == 3:
             print("Found Box 2 Tag!")
             box2 = block
-        elif r.tag_id == 3:
+        elif r.tag_id == 4:
             print("Found Box 3 Tag!")
             box3 = block
         else:
@@ -161,7 +161,8 @@ def captureVideo():
         getApril(frame)
 
         #Pick Up Box 0
-        pickBox0ToHardCoded()
+        # pickBox0ToHardCoded()
+        pickBox0ToBox1()
 
  
 
