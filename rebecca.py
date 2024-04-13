@@ -4,29 +4,44 @@ import apriltag
 import math
 import numpy
 import json
-from interbotix_xs_modules.arm import InterbotixManipulatorXS
+# from interbotix_xs_modules.arm import InterbotixManipulatorXS
 
+
+#Globals
 rotate = []
 scale = 0
 origin = []
-ran = False
-box1 = [] #april tag id = 1
-box2 = [] #april tag id = 2
-box3 = [] #april tag id = 3
+
+#Colors
 color_red = [[0,100,100], [10,255,255]]
 color_green = [[0,100,100], [10,255,255]]
 color_gray = [[0,100,100], [10,255,255]]
+
+ran = False
+box0 = None #testing box
+box1 = None #april tag id = 1
+box2 = None #april tag id = 2
+box3 = None #april tag id = 3
 
 
 #findColors
 # def findColor(color):
 #     #return centerx and centery
 
+class Coord:
+    def __init__(self,x,y):
+        self.x=x
+        self.y=y
+
+    def __str__(self):
+        return f"(X: {self.x}, Y: {self.y})"
+
 def pixelToBase(x, y):
     x = x - origin[0]
     y = y - origin[1]
-    rotated = rotate.T @ (numpy.array([[x,y]]).T)
-    return  rotated * scale
+    rotated = rotate.T @ (numpy.array([x,y]).T)
+    newxy = rotated * scale
+    return  Coord(newxy[0], newxy[1])
 
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
@@ -38,13 +53,11 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     # Initial Wake Up Position
     bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
 
-    
     bot.gripper.open()
     
     #time.sleep(0.5)
 
     # pick up all the objects and drop them in a virtual basket in front of the robot
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
     bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
     bot.gripper.close()
     bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
@@ -56,33 +69,25 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     bot.gripper.open()
     
 
-
     # Final Pre Sleep Position
     bot.arm.set_ee_pose_components(x=0.3, z=0.2)
     bot.arm.go_to_sleep_pose()
 
 def getApril(img):
 
+    global box0,box1,box2,box3
+
     image = img
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # define the AprilTags detector options and then detect the AprilTags
-    # in the input image
-    #TODO: make sure this family is right
     options = apriltag.DetectorOptions(families="tag36h11")
     detector = apriltag.Detector(options)
     results = detector.detect(gray)
 
     # loop over the AprilTag detection results
-    # if results.size() > 0:
-    boxes = []
-    # for i in range(1,4):
     for r in results:
-        print("Found April Tag!")
 
-        # print(r.tag_id)
-        # if r.tag_id == i:
-        # if results[0] is not None:
         # extract the bounding box (x, y)-coordinates for the AprilTag
         # and convert each of the (x, y)-coordinate pairs to integers
         (ptA, ptB, ptC, ptD) = r.corners
@@ -92,16 +97,23 @@ def getApril(img):
         #points in camera space
 
         #transform to coords in base link frame of reference
-        block = pixelToBase(centerx,centery)
-        # boxes.append(block)
-        return block
-    # if len(boxes) == 3:
-    # if len(boxes) > 0:
-    #     box1 = boxes[0]
-    #     box2 = boxes[1]
-    #     box3 = boxes[2]
+        block =  pixelToBase(centerx,centery)
 
-
+        #store base link coords in correct variable based on april tag id
+        if r.tag_id == 0:
+            print("Found Test Tag!")
+            box0 = block
+        elif r.tag_id == 1:
+            print("Found Box 1 Tag!")
+            box1 = block
+        elif r.tag_id == 2:
+            print("Found Box 2 Tag!")
+            box2 = block
+        elif r.tag_id == 3:
+            print("Found Box 3 Tag!")
+            box3 = block
+        else:
+            print("Found Tag: ", r.tag_id, "?")
 
 
 def captureVideo(): 
@@ -122,13 +134,13 @@ def captureVideo():
             print("Can't receive frame (stream end?). Exiting ...")
             break
 
+        # Find the positions of the end cups
+        getApril(frame)
 
-        # if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
-        
-        box1=getApril(frame)
-        print("box1:",box1)
-        if len(box1) > 0:
-            pickAndPlace(box1[0][0],-(box1[1][0])+0.02,0.05,0.5, .02, .05)
+        #Pick Up Box 0
+        pickBox0ToHardCoded()
+
+ 
 
         #given pink
         ##findcolor nad pick and place
@@ -153,15 +165,6 @@ def captureVideo():
     cv2.destroyAllWindows() 
 
 
-# cap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tureVideo()
-#    ''' i = 0
-#     while i<3:
-#         pickAndPlace(0.0,0.2,0.04,0.5)
-#         i += 1'''
-    
-# pickAndPlace(0.0,0.2,0.04,0.5)
-
-
 if __name__=="__main__": 
     with open('config.json') as openfile:
         json_object = json.load(openfile)
@@ -173,10 +176,39 @@ if __name__=="__main__":
     if origin is None or scale is None or rotate is None:
         print("Error with camera config")
 
+
     if ran == False:
         ran = True
         captureVideo()
 
+def pickBox0ToHardCoded():
+    if box0 is None:
+        print("Box 0 NOT FOUND")
+    else:
+        print("box1:", box1)
+        if isinstance(box0, Coord):
+            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5)
+
+
+def pickBox0ToBox1():
+    if box0 is None:
+        print("Box 0 NOT FOUND")
+    if box1 is None:
+        print("Box 0 NOT FOUND")
+    else:
+        print("box0:", box0)
+        print("box1:", box1)
+        pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=box1.x, finaly=-(box1.y))
+
+
+
+# cap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tureVideo()
+#    ''' i = 0
+#     while i<3:
+#         pickAndPlace(0.0,0.2,0.04,0.5)
+#         i += 1'''
+    
+# pickAndPlace(0.0,0.2,0.04,0.5)
 
 
 # pickAndPlace(block[0],-(block[1]),0.025,0.5)
