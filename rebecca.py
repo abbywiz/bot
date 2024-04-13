@@ -44,6 +44,7 @@ def pixelToBase(x, y):
     newxy = rotated * scale
     return  Coord(newxy[0], newxy[1])
 
+
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
 def pickAndPlace(x,y,z,pitch,finalx, finaly):
@@ -73,6 +74,26 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     # Final Pre Sleep Position
     bot.arm.set_ee_pose_components(x=0.3, z=0.2)
     bot.arm.go_to_sleep_pose()
+
+def pickBox0ToHardCoded():
+    if box0 is None:
+        print("Box 0 NOT FOUND")
+    else:
+        print("box1:", box1)
+        if isinstance(box0, Coord):
+            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=0.0 , finaly=0.2)
+
+
+def pickBox0ToBox1():
+    if box0 is None:
+        print("Box 0 NOT FOUND")
+    if box1 is None:
+        print("Box 0 NOT FOUND")
+    else:
+        print("box0:", box0)
+        print("box1:", box1)
+        pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=box1.x, finaly=-(box1.y))
+
 
 def getApril(img):
 
@@ -119,7 +140,7 @@ def getApril(img):
 
 def captureVideo(): 
     # define a video capture object 
-    vid = cv2.VideoCapture(2) 
+    vid = cv2.VideoCapture(0) 
 
     if not vid.isOpened():
         print("Cannot open camera")
@@ -182,24 +203,6 @@ if __name__=="__main__":
         ran = True
         captureVideo()
 
-def pickBox0ToHardCoded():
-    if box0 is None:
-        print("Box 0 NOT FOUND")
-    else:
-        print("box1:", box1)
-        if isinstance(box0, Coord):
-            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=0.0 , finaly=0.2)
-
-
-def pickBox0ToBox1():
-    if box0 is None:
-        print("Box 0 NOT FOUND")
-    if box1 is None:
-        print("Box 0 NOT FOUND")
-    else:
-        print("box0:", box0)
-        print("box1:", box1)
-        pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=box1.x, finaly=-(box1.y))
 
 
 
