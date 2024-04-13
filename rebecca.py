@@ -71,6 +71,7 @@ def rgb_to_hsv(color):
 
     lower_bound = [lower_hue, lower_saturation, lower_value]
     upper_bound = [upper_hue, lower_hue, lower_value]
+    print("HSV Bounds: ", lower_bound, upper_bound)
     return lower_bound,upper_bound
 
 def findColor(color, image):
