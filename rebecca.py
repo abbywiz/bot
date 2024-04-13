@@ -18,6 +18,7 @@ color_green = [[0,100,100], [10,255,255]]
 color_gray = [[0,100,100], [10,255,255]]
 
 ran = False
+
 box0 = None #testing box
 box1 = None #april tag id = 1
 box2 = None #april tag id = 2
@@ -187,7 +188,7 @@ def pickBox0ToHardCoded():
     else:
         print("box1:", box1)
         if isinstance(box0, Coord):
-            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5)
+            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=0.0 , finaly=0.2)
 
 
 def pickBox0ToBox1():
