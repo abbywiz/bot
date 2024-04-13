@@ -48,26 +48,30 @@ def pixelToBase(x, y):
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
 def pickAndPlace(x,y,z,pitch,finalx, finaly):
-    # Initialize the arm module along with the pointcloud and armtag modules
+    # Initialize the arm module al,ong with the pointcloud and armtag modules
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
 
     # Initial Wake Up Position
     bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
 
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.2,pitch =0.5)
+    # bot.arm.set_ee_cartesian_trajectory(x=x, z=0.2)
+    bot.arm.set_single_joint_position("wrist_angle", numpy.pi/3.0)
+    bot.arm.set_ee_cartesian_trajectory(z=-0.08)
     bot.gripper.open()
     
     #time.sleep(0.5)
 
     # pick up all the objects and drop them in a virtual basket in front of the robot
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
+    
     bot.gripper.close()
-    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.2,pitch=0.5)
 
     time.sleep(0.5)
 
     # Final Destination (Cup drop)
-    bot.arm.set_ee_pose_components(x=0.2, y=-0.2, z=0.1)
+    bot.arm.set_ee_pose_components(x=finalx, y=finaly, z=0.25)
     bot.gripper.open()
     
 
@@ -81,18 +85,18 @@ def pickBox0ToHardCoded():
     else:
         print("box1:", box1)
         if isinstance(box0, Coord):
-            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=0.0 , finaly=0.2)
+            pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.0, finalx=0.0 , finaly=0.2)
 
 
 def pickBox0ToBox1():
     if box0 is None:
         print("Box 0 NOT FOUND")
     if box1 is None:
-        print("Box 0 NOT FOUND")
+        print("Box 1 NOT FOUND")
     else:
         print("box0:", box0)
         print("box1:", box1)
-        pickAndPlace(x=box0.x,y=-(box0.y),z=0.05,pitch=0.5, finalx=box1.x, finaly=-(box1.y))
+        pickAndPlace(x=box0.x+0.1,y=-(box0.y)-0.04,z=0.05,pitch=0.0, finalx=box1.x-0.01, finaly=-(box1.y)-0.015)
 
 
 def getApril(img):
