@@ -122,6 +122,7 @@ def getApril(img):
         block =  pixelToBase(centerx,centery)
 
         #store base link coords in correct variable based on april tag id
+        print("ID IS: ",r.tag_id)
         if r.tag_id == 0:
             print("Found Test Tag!")
             box0 = block
