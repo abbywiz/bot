@@ -39,8 +39,8 @@ class Coord:
 
 def findColor(color, image):
 
-    _,frame = vid.read()
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lower_bound = numpy.array(color[0])
     upper_bound = numpy.array(color[1])
     # for c in color:
