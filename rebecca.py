@@ -13,9 +13,12 @@ scale = 0
 origin = []
 
 #Colors
-color_pink = [[0,100,100],[10,255,255]]
-color_green = [[50,50,50],[90,255,255]]
-color_grey= [[0,0,0],[100,255,50]]
+color_pink = None
+# [[0,100,100],[10,255,255]]
+color_green = None
+# [[50,50,50],[90,255,255]]
+color_grey= None
+# [[0,0,0],[100,255,50]]
 
 ran = False
 
@@ -37,35 +40,47 @@ class Coord:
     def __str__(self):
         return f"(X: {self.x}, Y: {self.y})"
 
+def rgb_to_hsv(color):
+    r = color[0]
+    g = color[1]
+    b = color[2]
+    # Convert RGB to BGR (OpenCV uses BGR order)
+    bgr_color = np.uint8([[[b, g, r]]])
+
+    # Convert BGR to HSV
+    hsv_color = cv2.cvtColor(bgr_color, cv2.COLOR_BGR2HSV)
+
+    # Extract HSV values
+    h, s, v = hsv_color[0][0]
+
+    # Scale HSV values from 0-179, 0-255, 0-255 to 0-255
+    h = int((h / 179) * 255)
+    s = int((s / 255) * 255)
+    v = int((v / 255) * 255)
+
+    # Define tolerance for HSV values
+    tolerance = 10
+
+    # Calculate upper and lower bounds for HSV values
+    lower_hue = max(0, h - tolerance)
+    upper_hue = min(255, h + tolerance)
+    lower_saturation = max(0, s - tolerance)
+    upper_saturation = min(255, s + tolerance)
+    lower_value = max(0, v - tolerance)
+    upper_value = min(255, v + tolerance)
+
+    lower_bound = [lower_hue, lower_saturation, lower_value]
+    upper_bound = [upper_hue, lower_hue, lower_value]
+    return lower_bound,upper_bound
+
 def findColor(color, image):
-
-
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower_bound = numpy.array(color[0])
-    upper_bound = numpy.array(color[1])
-    # for c in color:
-    #     lower_bound.append(clamp((c-deviation), 0, 255))
-    #     upper_bound.append(clamp((c+deviation), 0, 255))
-        # lower_bound.append(c)
-        # upper_bound.append(c)
-    # lower_bound = rgb_to_hsv(lower_bound)
-    # upper_bound = rgb_to_hsv(upper_bound)
 
-
-
-    # lower_bound = [max(0.0, color[0] - deviation * 100.0), max(0.0, color[1] - deviation * 100.0), max(0.0, color[2] - deviation * 360.0)]
-    # upper_bound = [min(179.0, color[0] + deviation * 100.0), min(255.0, color[1] + deviation * 100.0), min(255.0, color[2] + deviation * 360.0)]
-
-
-    #print("Color Range HSV: ", str(lower_bound), str(upper_bound))
+    lower_bound, upper_bound = rgb_to_hsv(color)
 
     mask = cv2.inRange(hsv, numpy.array(lower_bound), numpy.array(upper_bound))
-    #result = cv2.bitwise_and(frame,frame,mask=mask)
-    #cv2.imshow('result',result)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    # if len(contours) == 0:
-    #     print("No color in range found! Range: ", str(lower_bound), str(upper_bound))
 
     boxes = []
     for c in contours:
@@ -272,8 +287,13 @@ if __name__=="__main__":
     origin = numpy.array(json_object["origin"])
     scale = (json_object["scale"])
     rotate = numpy.array(json_object["rotate"])
+    colors = numpy.array(json_object["colors"])
+    if len(colors) == 3:
+        color_pink = colors[0]
+        color_green = colors[1]
+        color_grey = colors[2]
 
-    if origin is None or scale is None or rotate is None:
+    if origin is None or scale is None or rotate is None or colors is None:
         print("Error with camera config")
 
 

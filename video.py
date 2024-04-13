@@ -11,6 +11,7 @@ clicked = []
 rotate = []
 scale = 0
 deviation = .0019
+colors = []
     
 
 
@@ -18,7 +19,8 @@ def saveConfig(origin, scale, rotate):
     config = {
     "origin": origin.tolist(),
     "scale": scale,
-    "rotate": rotate.tolist()
+    "rotate": rotate.tolist(),
+    "colors": colors
     }
     json_object = json.dumps(config, indent=4)
     with open("config.json", "w") as outfile:
@@ -95,14 +97,14 @@ def getImg():
 
     global global_params
 
-    vid = cv2.VideoCapture(2) 
+    vid = cv2.VideoCapture(0) 
 
     if not vid.isOpened():
         print("Cannot open camera")
         exit()
 
-    ret, frame = vid.read() 
-    # frame = cv2.imread('pic.jpg', 1) 
+    # ret, frame = vid.read() 
+    frame = cv2.imread('pic.jpg', 1) 
 
     mtx = numpy.array([[1.56035688e+03, 0.00000000e+00, 7.44074967e+02],
             [0.00000000e+00, 1.55382936e+03, 6.04020129e+02],
@@ -189,27 +191,28 @@ def getImg():
             #circle our origin
             cv2.circle(dst, (int(origin[0]), int(origin[1])), 3, (0,255,0), 5)
             #Save image and config
-            filename = "dots" + ".jpg"
-            cv2.imwrite(filename, dst)
-            saveConfig(origin, scale, rotate)
-            break
+            # filename = "dots" + ".jpg"
+            # cv2.imwrite(filename, dst)
+            # saveConfig(origin, scale, rotate)
 
 
         # Run this to click a point
-        # if len(clicked) == 3 and len(pixels) == 1 and foundbase == False:
-        #     #Pink Block color is 77,82,211
-        #     upper = (80,85,214)
-        #     lower = (74,79,208)
-        #     colorRange = [lower, upper]
-        #     findColor(colorRange, dst)
-        #     # print("Clicked here", pixels[0][0], pixels[0][1])
-        #     # cv2.circle(dst, (pixels[0][0], pixels[0][1],), 3, (0,255,0), 5)
-        #     # points = pixelToBase(rotate, scale, origin, pixels[0][0], pixels[0][1])
-        #     # print("WRT the base", points[0], points[1])
+        if len(pixels) == 3 and foundbase == False:
+            #Click in order of red, gren, white
+            for p in pixels:
+                y = p[1]
+                x = p[0]
+                colorsB = dst[y,x,0]
+                colorsG = dst[y,x,1]
+                colorsR = dst[y,x,2]
+                colors.append([colorsR,colorsB,colorsG])
+            foundbase = True
+            break
 
-        #     filename = "dots" + ".jpg"
-        #     cv2.imwrite(filename, dst)
-        #     break
+            filename = "dots" + ".jpg"
+            cv2.imwrite(filename, dst)
+            saveConfig(origin, scale, rotate,colors)
+            break
 
         
 
