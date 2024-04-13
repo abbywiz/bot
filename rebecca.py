@@ -54,11 +54,11 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
 
     # Initial Wake Up Position
     bot.arm.set_ee_pose_components(x = 0.3, z = 0.2)
-
-    bot.arm.set_ee_pose_components(x=x, y=y, z=0.2,pitch =0.5)
-    # bot.arm.set_ee_cartesian_trajectory(x=x, z=0.2)
     bot.arm.set_single_joint_position("wrist_angle", numpy.pi/3.0)
-    bot.arm.set_ee_cartesian_trajectory(z=-0.08)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=0.2,pitch =1.2)
+    # bot.arm.set_ee_cartesian_trajectory(x=x, z=0.2)
+    
+    bot.arm.set_ee_cartesian_trajectory(z=-0.15)
     bot.gripper.open()
     
     #time.sleep(0.5)
@@ -96,7 +96,7 @@ def pickBox0ToBox1():
     else:
         print("box0:", box0)
         print("box1:", box1)
-        pickAndPlace(x=box0.x+0.1,y=-(box0.y)-0.04,z=0.05,pitch=0.0, finalx=box1.x-0.01, finaly=-(box1.y)-0.015)
+        pickAndPlace(x=box0.x+0.025,y=-(box0.y)-0.05,z=0.05,pitch=0.0, finalx=box1.x-0.005, finaly=-(box1.y))
 
 
 def getApril(img):
@@ -127,13 +127,13 @@ def getApril(img):
 
         #store base link coords in correct variable based on april tag id
         print("ID IS: ",r.tag_id)
-        if r.tag_id == 1:
+        if r.tag_id == 3:
             print("Found Test Tag!")
             box0 = block
         elif r.tag_id == 2:
             print("Found Box 1 Tag!")
             box1 = block
-        elif r.tag_id == 3:
+        elif r.tag_id == 1:
             print("Found Box 2 Tag!")
             box2 = block
         elif r.tag_id == 4:
