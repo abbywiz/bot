@@ -44,15 +44,15 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     #time.sleep(0.5)
 
     # pick up all the objects and drop them in a virtual basket in front of the robot
-    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
-    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
     bot.gripper.close()
-    bot.arm.set_ee_pose_components(x=x, y=y, z=0.075, pitch=pitch)
+    bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=pitch)
 
     time.sleep(0.5)
 
     # Final Destination (Cup drop)
-    bot.arm.set_ee_pose_components(x=finalx, y=finaly, z=0.2)
+    bot.arm.set_ee_pose_components(x=0.2, y=-0.2, z=0.1)
     bot.gripper.open()
     
 
@@ -93,10 +93,11 @@ def getApril(img):
 
         #transform to coords in base link frame of reference
         block = pixelToBase(centerx,centery)
-        boxes.append(block)
+        # boxes.append(block)
+        return block
     # if len(boxes) == 3:
-    if len(boxes) > 0:
-        box1 = boxes[0]
+    # if len(boxes) > 0:
+    #     box1 = boxes[0]
     #     box2 = boxes[1]
     #     box3 = boxes[2]
 
@@ -124,9 +125,10 @@ def captureVideo():
 
         # if len(box1) != 0 and len(box2) != 0 and len(box3) != 0:
         
-        getApril(frame)
+        box1=getApril(frame)
+        print("box1:",box1)
         if len(box1) > 0:
-            pickAndPlace(box1[0],-(box1[1]),0.025,0.5, .02, .05)
+            pickAndPlace(box1[0][0],-(box1[1][0])+0.02,0.05,0.5, .02, .05)
 
         #given pink
         ##findcolor nad pick and place
