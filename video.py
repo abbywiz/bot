@@ -98,7 +98,7 @@ def getImg():
 
     global global_params
 
-    vid = cv2.VideoCapture(0) 
+    vid = cv2.VideoCapture(2) 
 
     if not vid.isOpened():
         print("Cannot open camera")

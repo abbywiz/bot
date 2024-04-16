@@ -194,10 +194,16 @@ def getImg():
         if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
 
-        color = [[0,100,100],[10,255,255]]
-        color_green = [[50,50,50],[90,255,255]]
-        color_grey= [[0,0,0],[100,255,50]]
-        findColor(color, dst)
+        color_pink= [[0,150,100],[10,255,255]]
+        color_purple= [[145,80,80],[165,255,255]]
+        color_green = [[45,100,100],[75,255,255]]
+        #color_blue = [[100,100,100],[130,255,255]]
+        color_blue = [[110,100,100],[130,255,255]]
+        color_yellow = [[20,100,100],[40,255,255]]
+        color_orange= [[14,100,100],[24,255,255]] 
+       
+        print("dst:",dst)
+        findColor(color_pink, dst)
         filename = "dots" + ".jpg"
         cv2.imwrite(filename, dst)
 
