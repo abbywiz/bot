@@ -11,8 +11,8 @@ scale = 0
 origin = []
 
 #Colors
-color_pink= [[0,150,100],[30,255,255]]
-color_purple= [[145,80,80],[165,255,255]]
+color_red= [[0,150,100],[10,255,255]]
+color_blue= [[110,100,100],[130,255,255]]
 color_green = [[70,100,100],[80,255,255]]
 
 ran = False
@@ -24,9 +24,9 @@ box2 = None #april tag id = 2 #Green
 box3 = None #april tag id = 3
 
 bxOffset = 0.01
-byOffset = 0.05
-fxOffset = 0
-fyOffset = 0.04
+byOffset = 0.03
+fxOffset = -0.005
+fyOffset = 0.025
 
 class Coord:
     def __init__(self,x,y):
@@ -49,7 +49,7 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
     # Initial Wake Up Position
-    bot.arm.set_ee_pose_components(x = 0.3, z = 0.3)
+    bot.arm.set_ee_pose_components(x = 0.2, z = 0.4)
     bot.gripper.open()
     
     # Move gripper to point to the ground
@@ -77,7 +77,7 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     bot.gripper.open()
     
     # Final Pre Sleep Position
-    bot.arm.set_ee_pose_components(x=0.3, z=0.2)
+    bot.arm.set_ee_pose_components(x=0.2, z=0.4)
     bot.arm.go_to_sleep_pose()
 def pickBox0ToHardCoded():
     if box0 is None:
@@ -103,15 +103,15 @@ def pickGreenToBox(b):
     if box2 is None:
         print("Box Green NOT FOUND")
     else:
-        print("box2:", box1)
-        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box2.x+fxOffset, finaly=-(box2.y)+fyOffset)
+        print("box2:", box2)
+        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box2.x+fxOffset, finaly=-(box2.y)+fyOffset-0.003)
 
 def pickRedToBox(b):
     if box1 is None:
         print("Box Red NOT FOUND")
     else:
-        print("box1:", box1)
-        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box2.x+fxOffset, finaly=-(box2.y)+fyOffset)
+        print("box2:", box1)
+        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box1.x+fxOffset, finaly=-(box1.y)+fyOffset)
 
 def pickBlueToBox(b):
     if box3 is None:
@@ -159,8 +159,8 @@ def getApril(img):
 
 def findColor(color, image):
 
-    _,frame = vid.read()
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    #_,frame = vid.read()
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lower_bound = numpy.array(color[0])
     upper_bound = numpy.array(color[1])
 
@@ -219,14 +219,14 @@ def captureVideo():
         
         #Pick Up Green Box and Put It In Green Cup
         boxes = findColor(color_green,frame)
-        pickGreenToBox(b)
+        pickGreenToBox(boxes)
 
-        # boxes = findColor(color_blue,frame)
-        # pickBlueToBox(b)
+        boxes = findColor(color_blue,frame)
+        pickBlueToBox(boxes)
 
 
-        # boxes = findColor(color_red,frame)
-        # pickRedToBox(b)
+        boxes = findColor(color_red,frame)
+        pickRedToBox(boxes)
 
 
         # #Pick Up Box 0
