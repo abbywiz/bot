@@ -91,6 +91,8 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     # Final Destination (Cup drop)
     bot.arm.set_ee_pose_components(x=finalx, y=finaly, z=0.3)
     bot.gripper.open()
+    bot.arm.set_ee_pose_components(x=0.2)
+
     
 def pickBox0ToHardCoded():
     if box0 is None:
