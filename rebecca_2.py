@@ -28,6 +28,8 @@ byOffset = 0.03
 fxOffset = -0.005
 fyOffset = 0.025
 
+bot = None
+
 class Coord:
     def __init__(self,x,y):
         self.x=x
@@ -44,13 +46,27 @@ def pixelToBase(x, y):
 
 # Accepts real world coordinates for where to put the gripper
 # In respect to the base frame
-def pickAndPlace(x,y,z,pitch,finalx, finaly):
-    # Initialize the arm module al,ong with the pointcloud and armtag modules
-    bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
 
-    # Initial Wake Up Position
+
+def awake():
+    global bot
+
+    bot = InterbotixManipulatorXS("rx200", moving_time=1.5, accel_time=0.75)
+    
+     # Initial Wake Up Position
     bot.arm.set_ee_pose_components(x = 0.2, z = 0.4)
     bot.gripper.open()
+
+def sleep():
+    global bot
+
+     # Final Pre Sleep Position
+    bot.arm.set_ee_pose_components(x=0.2, z=0.4)
+    bot.arm.go_to_sleep_pose()
+
+def pickAndPlace(x,y,z,pitch,finalx, finaly):
+    # Initialize the arm module al,ong with the pointcloud and armtag modules
+    global bot
     
     # Move gripper to point to the ground
     bot.arm.set_single_joint_position("wrist_angle", numpy.pi/2.0)
@@ -76,9 +92,6 @@ def pickAndPlace(x,y,z,pitch,finalx, finaly):
     bot.arm.set_ee_pose_components(x=finalx, y=finaly, z=0.3)
     bot.gripper.open()
     
-    # Final Pre Sleep Position
-    bot.arm.set_ee_pose_components(x=0.2, z=0.4)
-    bot.arm.go_to_sleep_pose()
 def pickBox0ToHardCoded():
     if box0 is None:
         print("Box 0 NOT FOUND")
@@ -104,7 +117,7 @@ def pickGreenToBox(b):
         print("Box Green NOT FOUND")
     else:
         print("box2:", box2)
-        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box2.x+fxOffset, finaly=-(box2.y)+fyOffset-0.003)
+        pickAndPlace(x=(b.x)+bxOffset,y=-(b.y)+byOffset,z=0.05,pitch=0.0, finalx=box2.x+fxOffset-0.01, finaly=-(box2.y)+fyOffset-0.003)
 
 def pickRedToBox(b):
     if box1 is None:
@@ -216,6 +229,11 @@ def captureVideo():
         
         # Find the positions of the end cups
         getApril(frame)
+
+        awake()
+
+        boxes = findColor(color_red,frame)
+        pickRedToBox(boxes)
         
         #Pick Up Green Box and Put It In Green Cup
         boxes = findColor(color_green,frame)
@@ -224,9 +242,7 @@ def captureVideo():
         boxes = findColor(color_blue,frame)
         pickBlueToBox(boxes)
 
-
-        boxes = findColor(color_red,frame)
-        pickRedToBox(boxes)
+        sleep()
 
 
         # #Pick Up Box 0
